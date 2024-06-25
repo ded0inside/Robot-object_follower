@@ -1,0 +1,22 @@
+{
+  "commands": [
+    {
+      "command": "set_motors",
+      "parameter": [0.1, 0.1]
+    },
+    {
+      "command": "stop"
+    },
+    {
+      "command": "sleep",
+      "parameter": [5]
+    },
+    {
+      "command": "set_motors",
+      "parameter": [0.1, 0.1]
+    },
+    {
+      "command": "stop"
+    }
+  ]
+}
