@@ -8,6 +8,7 @@ import numpy as np
 app = Flask(__name__)
 
 commands_list = []
+frame_data = None
 
 
 def add_command( command, parameters):
@@ -38,17 +39,20 @@ def commands_to_json():
 
     return json_data
 
+
 @app.route('/')
 def index():
-    return render_template('index.html')
+    global frame_data
+    return render_template('index.html', frame_data=frame_data)
 
 
 @app.route('/process_frame', methods=['POST'])
 def process_frame():
     data = request.json
     if "frame" in data:
+        global frame_data
         frame_data = data["frame"]
-        jpg_original = base64.b64decode(frame_data)
+        # jpg_original = base64.b64decode(frame_data)
         # frame = np.frombuffer(jpg_original, dtype=np.uint8)
         # frame = cv2.imdecode(frame, cv2.IMREAD_COLOR)
 
@@ -61,18 +65,23 @@ def process_frame():
         add_command("stop", [])     # Dumb values
 
 
-        print(type(jpg_original))
+        # print(type(jpg_original))
 
         # return jsonify({"status": "frame processed"}), 200
-        return render_template('index.html', frame_data=jpg_original)
+        return render_template('index.html', frame_data=frame_data)
     else:
         return jsonify({"error": "No frame received"}), 400
 
 
 @app.route('/send_commands', methods=['GET'])
 def send_commands():
-    print(commands_to_json())
     return commands_to_json()
+
+
+@app.route('/get_frame', methods=['GET'])
+def get_frame():
+    global frame_data
+    return jsonify({"frame_data": frame_data})
 
 
 if __name__ == '__main__':
