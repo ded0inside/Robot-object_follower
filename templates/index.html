@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jetson Nano Camera Stream</title>
+</head>
+<body>
+    <h1>Jetson Nano Camera Stream</h1>
+    {% if frame_data %}
+    <img src="data:image/jpeg;base64,{{ frame_data }}" width="960" height="540">
+    {% else %}
+    <p>No frame received yet.</p>
+    {% endif %}
+    <form action="/send_command" method="post">
+        <label for="command">Enter Command:</label>
+        <input type="text" id="command" name="command">
+        <button type="submit">Send Command</button>
+    </form>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            setInterval(function() {
+                var imgElement = document.getElementById('live-img');
+                if (imgElement) {
+                    imgElement.src = "data:image/jpeg;base64,{{ frame_data }}";
+                } else {
+                    console.error("Element with id 'live-img' not found.");
+                }
+            }, 2000);  // Update every 2 seconds (adjust as needed)
+        });
+    </script>
+</body>
+</html>
