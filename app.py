@@ -1,3 +1,4 @@
+import json
 from flask import Flask, request, jsonify, render_template
 import base64
 # import cv2
@@ -6,31 +7,65 @@ import numpy as np
 
 app = Flask(__name__)
 
-commands = {}
+commands_list = []
+frame_data = None
+
+
+def add_command( command, parameters):
+    global commands_list
+    
+    if type(command) == str:
+        # Create a dictionary for each command
+        command_dict = {"command": command}
+        if type(parameters) == list:
+            command_dict["parameter"] = parameters
+        else:
+            raise "Parametrs should be a list. Even empty one"
+
+        # Add the command dictionary to the list
+        commands_list.append(command_dict)
+    else:
+        raise "Command name should be a string"
+
+
+def commands_to_json():
+    global commands_list
+
+    # Create the final dictionary to hold all commands
+    commands_json = {"commands": commands_list}
+
+    # Convert the dictionary to a JSON string
+    json_data = json.dumps(commands_json, indent=2)
+
+    return json_data
 
 
 @app.route('/')
 def index():
-    return render_template('index.html')
+    global frame_data
+    return render_template('index.html', frame_data=frame_data)
 
 
 @app.route('/process_frame', methods=['POST'])
 def process_frame():
     data = request.json
     if "frame" in data:
+        global frame_data
         frame_data = data["frame"]
-        # jpg_original = base64.b64decode(jpg_as_text)
+        # jpg_original = base64.b64decode(frame_data)
         # frame = np.frombuffer(jpg_original, dtype=np.uint8)
         # frame = cv2.imdecode(frame, cv2.IMREAD_COLOR)
-        #
-        # # Dummy processing - replace with your actual processing logic
-        # gray_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+
+        # Get and make next package of commands
+        global commands_list
+        commands_list = []  # Clear up after previous package
 
         # Generate commands based on processing
-        global commands
-        commands = {"move": "forward"}  # Replace with actual commands based on processing
+        add_command("set_motors", [0.1, 0.1])  # dumb values
+        add_command("stop", [])     # Dumb values
 
-        print(type(frame_data))
+
+        # print(type(jpg_original))
 
         # return jsonify({"status": "frame processed"}), 200
         return render_template('index.html', frame_data=frame_data)
@@ -40,8 +75,13 @@ def process_frame():
 
 @app.route('/send_commands', methods=['GET'])
 def send_commands():
-    global commands
-    return jsonify(commands)
+    return commands_to_json()
+
+
+@app.route('/get_frame', methods=['GET'])
+def get_frame():
+    global frame_data
+    return jsonify({"frame_data": frame_data})
 
 
 if __name__ == '__main__':
